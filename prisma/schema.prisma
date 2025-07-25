@@ -13,3 +13,78 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model Mass {
+  id      String  @id
+  name    String
+  managerId   String @unique
+
+  members   MassMemebr[] @relation("mass-member")
+  manager     MassMemebr @relation(name: "mass-manager", fields: [managerId], references: [id])
+  meals Meal[]
+  shoppings Shopping[]
+  
+  createdAt  DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("masses")
+  
+
+}
+
+model MassMemebr {
+  id    String @id
+  name  String
+  email String
+  password  String
+  massId    String?
+  role   USERROLE[]  @default([MEMBER])
+  meals  Meal[]
+  shoppings Shopping[]
+  joinedMass    Mass? @relation("mass-member", fields: [massId], references: [id])
+  managedMass Mass?  @relation("mass-manager")
+
+  createdAt  DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("mass_members")
+
+}
+
+model Meal {
+  id    String @id
+  date   DateTime @default(now())
+  quantity  Int
+  memberId    String
+  massId      String
+  member      MassMemebr @relation(fields: [memberId], references: [id])
+  mass         Mass       @relation(fields: [massId], references: [id])
+
+  createdAt  DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("meals")
+}
+model Shopping {
+  id    String   @id
+  ingredients     String[]
+  price   Decimal
+  memberId    String
+  massId      String
+
+  member  MassMemebr  @relation(fields: [memberId], references: [id])
+  mass    Mass        @relation(fields: [massId], references: [id])
+
+  createdAt  DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("shoppings")
+}
+
+
+enum USERROLE {
+
+  MEMBER
+  MANAGER
+  SUPERADMIN
+}

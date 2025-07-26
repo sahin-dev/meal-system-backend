@@ -1,6 +1,16 @@
 import express, {NextFunction, Request, Response} from 'express'
+import morgan from 'morgan'
+import responseTime from 'response-time'
 
 const app = express()
+
+app.use(responseTime())
+app.use(morgan("dev"))
+
+app.get("/",(req:Request, res:Response)=>{
+    res.send(`${req.method.toUpperCase()}: ${req.url}`)
+
+})
 
 app.use((req:Request, res:Response, next:NextFunction)=>{
 

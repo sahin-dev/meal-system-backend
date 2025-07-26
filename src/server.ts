@@ -1,6 +1,6 @@
 import app from './app'
 import {createServer} from 'http'
-import { config } from './app/config'
+import { config } from './config'
 
 const port = config.port || 5000
 

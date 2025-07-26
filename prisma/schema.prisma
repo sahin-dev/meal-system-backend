@@ -14,35 +14,79 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Mass {
-  id      String  @id
+model Catering {
+  id      Int    @id @default(autoincrement())
   name    String
-  managerId   String @unique
+  location  String
+  members  Memebr[]
+  reviews Review[]
 
-  members   MassMemebr[] @relation("mass-member")
-  manager     MassMemebr @relation(name: "mass-manager", fields: [managerId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("caterings")
+}
+
+model Review {
+  id    Int  @id  @default(autoincrement())
+  rating    Int
+  comment   String?
+  memberId  Int
+  cateringId    Int
+
+  catering  Catering @relation(fields: [cateringId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  @@map("reviews")
+}
+
+model Mass {
+  id      Int  @id @default(autoincrement())
+  name    String
+  managerId   Int @unique
+
+  members   Memebr[] @relation("mass-member")
+  manager     Memebr @relation(name: "mass-manager", fields: [managerId], references: [id])
   meals Meal[]
   shoppings Shopping[]
+  requirements Requirement[]
   
   createdAt  DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@map("masses")
-  
-
 }
 
-model MassMemebr {
-  id    String @id
+model MealRequest {
+  id    Int @id @default(autoincrement())
+  memberId    String
+  catringId   String
+  status     MealStatus
+  type      MealType
+  remark    String?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("requests")
+}
+
+model Memebr {
+  id    Int @id @default(autoincrement())
   name  String
-  email String
+  email String @unique
   password  String
-  massId    String?
+  massId    Int?
+  cateringId  Int?
+
   role   USERROLE[]  @default([MEMBER])
   meals  Meal[]
   shoppings Shopping[]
   joinedMass    Mass? @relation("mass-member", fields: [massId], references: [id])
   managedMass Mass?  @relation("mass-manager")
+  catering    Catering[]
+  requirements Requirement[]
 
   createdAt  DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -52,12 +96,13 @@ model MassMemebr {
 }
 
 model Meal {
-  id    String @id
+  id    Int @id @default(autoincrement())
   date   DateTime @default(now())
   quantity  Int
-  memberId    String
-  massId      String
-  member      MassMemebr @relation(fields: [memberId], references: [id])
+  type    MealType
+  memberId    Int
+  massId      Int
+  member      Memebr @relation(fields: [memberId], references: [id])
   mass         Mass       @relation(fields: [massId], references: [id])
 
   createdAt  DateTime @default(now())
@@ -65,14 +110,43 @@ model Meal {
 
   @@map("meals")
 }
+
+
+model Requirement {
+  id    Int @id @default(autoincrement())
+  massId    Int
+  memberId  Int
+  text      String
+
+  status    RequirementStatus @default(PENDING)
+
+  member  Memebr @relation(fields: [memberId], references: [id])
+  mass  Mass  @relation(fields: [massId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("requirements")
+}
+
+model Notice {
+  id      Int  @id  @default( autoincrement())
+  text    String
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("notices")
+}
+
 model Shopping {
-  id    String   @id
+  id    Int   @id @default(autoincrement())
   ingredients     String[]
   price   Decimal
-  memberId    String
-  massId      String
+  memberId    Int 
+  massId      Int
 
-  member  MassMemebr  @relation(fields: [memberId], references: [id])
+  member  Memebr  @relation(fields: [memberId], references: [id])
   mass    Mass        @relation(fields: [massId], references: [id])
 
   createdAt  DateTime @default(now())
@@ -83,8 +157,23 @@ model Shopping {
 
 
 enum USERROLE {
-
   MEMBER
   MANAGER
   SUPERADMIN
+}
+
+enum MealStatus {
+  ACCEPTED
+  DECLINED
+}
+
+enum RequirementStatus {
+  RESOLVED
+  PENDING
+}
+
+enum MealType {
+  BREAKFAST
+  LAUNCH
+  DINNER
 }
